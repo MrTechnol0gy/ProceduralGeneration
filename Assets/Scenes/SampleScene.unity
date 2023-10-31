@@ -265,10 +265,14 @@ MonoBehaviour:
   - {fileID: 159526, guid: 3c732fc2103e2a74aa95ef40ff66c419, type: 3}
   - {fileID: 185114, guid: 2b3934645704be845b6860aa592b82eb, type: 3}
   - {fileID: 115610, guid: b444f81a3b0a3e14d9e6f5cb91afee55, type: 3}
+  roomFloorTiles:
+  - {fileID: 125812, guid: f7d5c786be55f564b9145808d2121305, type: 3}
   wallTiles:
   - {fileID: 130878, guid: 196b993d2b0354842bd6fa90eb970550, type: 3}
-  width: 10
-  length: 10
+  doorTiles:
+  - {fileID: 162390, guid: edc836b82587af342b79b01da47827f5, type: 3}
+  dungeonWidth: 10
+  dungeonLength: 10
   tileSize: 5
   gridSpacing: 0
 --- !u!1 &963194225
@@ -357,7 +361,7 @@ Transform:
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
   m_LocalRotation: {x: 0.217696, y: -0, z: -0, w: 0.97601664}
-  m_LocalPosition: {x: 15.29, y: 24.4, z: -10}
+  m_LocalPosition: {x: 24, y: 24.4, z: -24.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
