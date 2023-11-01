@@ -271,8 +271,10 @@ MonoBehaviour:
   - {fileID: 130878, guid: 196b993d2b0354842bd6fa90eb970550, type: 3}
   doorTiles:
   - {fileID: 162390, guid: edc836b82587af342b79b01da47827f5, type: 3}
-  dungeonWidth: 10
-  dungeonLength: 10
+  dungeonWidth: 50
+  dungeonLength: 50
+  numberOfRooms: 50
+  maxAttempts: 10
   tileSize: 5
   gridSpacing: 0
 --- !u!1 &963194225

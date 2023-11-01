@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 65331029793011162}
   m_Layer: 0
   m_Name: SM_Env_Wall_01_DoubleSided
-  m_TagString: Untagged
+  m_TagString: RegularWall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

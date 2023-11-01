@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class DungeonGenerator : MonoBehaviour
 {
@@ -10,12 +11,21 @@ public class DungeonGenerator : MonoBehaviour
     public GameObject[] doorTiles; // Array of door tile prefabs
     public int dungeonWidth = 10; // Width of the floor
     public int dungeonLength = 10; // Length of the floor
+    public int numberOfRooms = 2; // Number of rooms to generate
+    public int maxAttempts = 10; // Maximum number of attempts to generate a room
     public float tileSize = 1.0f; // Size of each tile
     public float gridSpacing = 1.0f; // Spacing between tiles
 
     private int[,] dungeonFloorMap;
     private int[,] dungeonWallMap;
 
+    public enum TileType
+    {
+        Empty,
+        StandardTile,
+        RoomTile,
+        Door
+    }
     private class RoomParameters
     {
         public int minSize = 2;
@@ -68,19 +78,12 @@ public class DungeonGenerator : MonoBehaviour
     {
         // Initialize the dungeon maps
         InitializeMaps();
-        // Generate the outer walls
-        GenerateWalls();
         // Generate a single room
-        GenerateSingleRoom();
+        GenerateRooms();
         // Fills in all non-room areas with floors
         GenerateFloor();
-        // for (int z = 0; z < dungeonLength; z++)
-        // {
-        //     for (int x = 0; x < dungeonWidth; x++)
-        //     {
-        //         Debug.Log("dungeonFloorMap[" + x + ", " + z + "] = " + dungeonFloorMap[x, z]);
-        //     }
-        // }
+        // Generate the walls
+        GenerateWalls();
     }
 
     void ClearDungeon()
@@ -120,7 +123,7 @@ public class DungeonGenerator : MonoBehaviour
         {
             for (int z = 0; z < dungeonLength; z++)
             {
-                if (dungeonFloorMap[x, z] == 0)
+                if (dungeonFloorMap[x, z] == TileType.Empty.GetHashCode())
                 {
                     // Randomly select a floor tile from your array
                     int randomTileIndex = Random.Range(0, floorTiles.Length);
@@ -134,7 +137,7 @@ public class DungeonGenerator : MonoBehaviour
                     );
 
                     // Update the dungeon layout map to indicate a floor tile.
-                    dungeonFloorMap[x, z] = 1;
+                    dungeonFloorMap[x, z] = TileType.StandardTile.GetHashCode();
 
                     // Instantiate the floor tile at the calculated position, as a child of this transform
                     GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity, transform);
@@ -153,9 +156,6 @@ public class DungeonGenerator : MonoBehaviour
                         0,
                         z * (tileSize + gridSpacing) + tileSize // To correct an offset in the room floor tiles
                     );
-
-                    // Update the dungeon layout map to indicate a floor tile.
-                    dungeonFloorMap[x, z] = 1;
 
                     // Instantiate the floor tile at the calculated position, as a child of this transform
                     GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity, transform);
@@ -186,7 +186,7 @@ public class DungeonGenerator : MonoBehaviour
                     );
 
                     // Update the dungeon layout map to indicate a wall tile.
-                    dungeonWallMap[x, z] = 1;
+                    dungeonWallMap[x, z] = TileType.StandardTile.GetHashCode();
 
                     // Instantiate the wall tile at the calculated position, as a child of this transform.
                     GameObject wallTileInstance = Instantiate(wallTile, position, Quaternion.identity, transform);
@@ -222,7 +222,7 @@ public class DungeonGenerator : MonoBehaviour
                     GameObject wallTile = wallTiles[randomTileIndex];
 
                     // Update the dungeon layout map to indicate a wall tile.
-                    dungeonWallMap[x, z] = 1;
+                    dungeonWallMap[x, z] = TileType.StandardTile.GetHashCode();
 
                     // Instantiate the wall tile at the calculated position, as a child of this transform.
                     GameObject wallTileInstance = Instantiate(wallTile, position, Quaternion.identity, transform);
@@ -246,27 +246,178 @@ public class DungeonGenerator : MonoBehaviour
                 }
             }
         }
+        // Generate walls for rooms
+        for (int x = 0; x < dungeonWidth; x++)
+        {
+            for (int z = 0; z < dungeonLength; z++)
+            {
+                if (dungeonFloorMap[x, z] == TileType.RoomTile.GetHashCode())
+                {
+                    // Check if the tile to the left is not a room tile
+                    if (x > 0 && dungeonFloorMap[x - 1, z] != TileType.RoomTile.GetHashCode())
+                    {
+                        // Randomly select a wall tile from your array.
+                        int randomTileIndex = Random.Range(0, wallTiles.Length);
+                        GameObject wallTile = wallTiles[randomTileIndex];
+
+                        // Calculate the position for the wall tile.
+                        Vector3 position = new Vector3(
+                            x * (tileSize + gridSpacing),
+                            0,
+                            z * (tileSize + gridSpacing)
+                        );
+                        // if the wallMap indicates a door, create a door
+                        if (dungeonWallMap[x, z] == TileType.Door.GetHashCode())
+                        {
+                            // Randomly select a door tile from your array.
+                            randomTileIndex = Random.Range(0, doorTiles.Length);
+                            wallTile = doorTiles[randomTileIndex];
+                        }
+                        // Instantiate the wall tile at the calculated position, as a child of this transform.
+                        GameObject wallTileInstance = Instantiate(wallTile, position, Quaternion.identity, transform);
+
+                        // Rotate wall tiles along the left edge and move to the opposite side.
+                        wallTileInstance.transform.rotation = Quaternion.Euler(0, 90, 0);
+                        wallTileInstance.transform.position = new Vector3(
+                            wallTileInstance.transform.position.x - tileSize, // Move to the opposite side
+                            wallTileInstance.transform.position.y,
+                            wallTileInstance.transform.position.z
+                        );
+                    }
+                    // Check if the tile to the right is not a room tile
+                    if (x < dungeonWidth - 1 && dungeonFloorMap[x + 1, z] != TileType.RoomTile.GetHashCode())
+                    {
+                        // Randomly select a wall tile from your array.
+                        int randomTileIndex = Random.Range(0, wallTiles.Length);
+                        GameObject wallTile = wallTiles[randomTileIndex];
+
+                        // Calculate the position for the wall tile.
+                        Vector3 position = new Vector3(
+                            x * (tileSize + gridSpacing),
+                            0,
+                            z * (tileSize + gridSpacing)
+                        );
+
+                        // if the wallMap indicates a door, create a door
+                        if (dungeonWallMap[x, z] == TileType.Door.GetHashCode())
+                        {
+                            // Randomly select a door tile from your array.
+                            randomTileIndex = Random.Range(0, doorTiles.Length);
+                            wallTile = doorTiles[randomTileIndex];
+                        }
+
+                        // Instantiate the wall tile at the calculated position, as a child of this transform.
+                        GameObject wallTileInstance = Instantiate(wallTile, position, Quaternion.identity, transform);
+
+                        // Rotate wall tiles along the right edge.
+                        wallTileInstance.transform.rotation = Quaternion.Euler(0, 90, 0);
+                    }
+                    // Check if the tile to the bottom is not a room tile
+                    if (z > 0 && dungeonFloorMap[x, z - 1] != TileType.RoomTile.GetHashCode())
+                    {
+                        // Randomly select a wall tile from your array.
+                        int randomTileIndex = Random.Range(0, wallTiles.Length);
+                        GameObject wallTile = wallTiles[randomTileIndex];
+
+                        // Calculate the position for the wall tile.
+                        Vector3 position = new Vector3(
+                            x * (tileSize + gridSpacing),
+                            0,
+                            z * (tileSize + gridSpacing)
+                        );
+
+                        // if the wallMap indicates a door, create a door
+                        if (dungeonWallMap[x, z] == TileType.Door.GetHashCode())
+                        {
+                            // Randomly select a door tile from your array.
+                            randomTileIndex = Random.Range(0, doorTiles.Length);
+                            wallTile = doorTiles[randomTileIndex];
+                        }
+
+                        // Instantiate the wall tile at the calculated position, as a child of this transform.
+                        GameObject wallTileInstance = Instantiate(wallTile, position, Quaternion.identity, transform);
+
+                        // Rotate wall tiles along the bottom edge.
+                        wallTileInstance.transform.rotation = Quaternion.Euler(0, 0, 0);
+                    }
+                    // Check if the tile to the top is not a room tile
+                    if (z < dungeonLength - 1 && dungeonFloorMap[x, z + 1] != TileType.RoomTile.GetHashCode())
+                    {
+                        // Randomly select a wall tile from your array.
+                        int randomTileIndex = Random.Range(0, wallTiles.Length);
+                        GameObject wallTile = wallTiles[randomTileIndex];
+
+                        // Calculate the position for the wall tile.
+                        Vector3 position = new Vector3(
+                            x * (tileSize + gridSpacing),
+                            0,
+                            z * (tileSize + gridSpacing)
+                        );
+
+                        // if the wallMap indicates a door, create a door
+                        if (dungeonWallMap[x, z] == TileType.Door.GetHashCode())
+                        {
+                            // Randomly select a door tile from your array.
+                            randomTileIndex = Random.Range(0, doorTiles.Length);
+                            wallTile = doorTiles[randomTileIndex];
+                        }
+
+                        // Instantiate the wall tile at the calculated position, as a child of this transform.
+                        GameObject wallTileInstance = Instantiate(wallTile, position, Quaternion.identity, transform);
+
+                        // Rotate wall tiles along the top edge and move to the opposite side.
+                        wallTileInstance.transform.rotation = Quaternion.Euler(0, 0, 0);
+                        wallTileInstance.transform.position = new Vector3(
+                            wallTileInstance.transform.position.x,
+                            wallTileInstance.transform.position.y,
+                            wallTileInstance.transform.position.z + tileSize // Move to the opposite side
+                        );
+                    }
+                }
+            }
+        }
     }
 
-    void GenerateSingleRoom()
+    void GenerateRooms()
     {
-        // Define the room's size (random within the specified range)
-        int roomWidth = Random.Range(roomParams.minSize, roomParams.maxSize);
-        int roomLength = Random.Range(roomParams.minSize, roomParams.maxSize);
+        int attempts = 0;
 
-        // Randomly position the room within the dungeon
-        int roomX = Random.Range(0, dungeonWidth - roomWidth);
-        int roomZ = Random.Range(0, dungeonLength - roomLength);
-
-        // Check if the room overlaps with other rooms or dungeon walls
-        if (IsRoomPositionValid(roomX, roomZ, roomWidth, roomLength))
+        
+        // Generate the specified number of rooms
+        for (int i = 0; i < numberOfRooms; i++)
         {
-             // Add the room to the list
-            Room newRoom = new Room(roomX, roomZ, roomWidth, roomLength);
-            rooms.Add(newRoom);
+            // Check if the number of attempts has exceeded the maximum
+            if (attempts >= maxAttempts)
+            {
+                break;
+            }
+            // Define the room's size (random within the specified range)
+            int roomWidth = Random.Range(roomParams.minSize, roomParams.maxSize);
+            int roomLength = Random.Range(roomParams.minSize, roomParams.maxSize);
 
-            // Generate the room's floor and walls
-            GenerateRoom(newRoom);
+            // Randomly position the room within the dungeon
+            int roomX = Random.Range(1, dungeonWidth - roomWidth + 1);
+            int roomZ = Random.Range(1, dungeonLength - roomLength + 1);
+
+            // Check if the room overlaps with other rooms or dungeon walls
+            if (IsRoomPositionValid(roomX, roomZ, roomWidth, roomLength))
+            {
+                // Add the room to the list
+                Room newRoom = new Room(roomX, roomZ, roomWidth, roomLength);
+                rooms.Add(newRoom);
+
+                // Generate the room's floor and walls
+                GenerateRoom(newRoom); 
+
+                // Reset the number of attempts
+                attempts = 0;               
+            } 
+            else
+            {
+                // If the room overlaps, try again
+                i--;
+                attempts++;
+            }           
         }
     }
 
@@ -289,20 +440,38 @@ public class DungeonGenerator : MonoBehaviour
         {
             return false; // Room is out of bounds
         }
-
         return true;
     }
 
     void GenerateRoom(Room room)
     {
+        // Create a list to store potential door positions
+        List<Vector2Int> potentialDoorPositions = new List<Vector2Int>();
+
         for (int x = room.x; x < room.x + room.width; x++)
         {
             for (int z = room.z; z < room.z + room.length; z++)
             {
                 // Set values in dungeonFloorMap and dungeonWallMap to indicate floors and walls
-                dungeonFloorMap[x, z] = 2;  // You might want to use different values to represent floors and walls
-                dungeonWallMap[x, z] = 2;  // Adjust this value based on your logic
+                dungeonFloorMap[x, z] = TileType.RoomTile.GetHashCode(); 
+                dungeonWallMap[x, z] = TileType.RoomTile.GetHashCode();
+
+                // Check if this tile is at the edge of the room
+                if (x == room.x || x == room.x + room.width - 1 || z == room.z || z == room.z + room.length - 1)
+                {
+                    // This tile is at the edge of the room, add it to potential door positions
+                    potentialDoorPositions.Add(new Vector2Int(x, z));
+                }
             }
+        }
+        // Check if there are potential door positions
+        if (potentialDoorPositions.Count > 0)
+        {
+            // Randomly select a position from the potential door positions
+            Vector2Int doorPosition = potentialDoorPositions[Random.Range(0, potentialDoorPositions.Count)];
+
+            // Set the door tile at the chosen position
+            dungeonWallMap[doorPosition.x, doorPosition.y] = TileType.Door.GetHashCode();
         }
     }
 }
