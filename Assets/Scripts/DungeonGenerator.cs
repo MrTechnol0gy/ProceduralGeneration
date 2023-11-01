@@ -18,6 +18,7 @@ public class DungeonGenerator : MonoBehaviour
 
     private int[,] dungeonFloorMap;
     private int[,] dungeonWallMap;
+    private bool addDoors = true;
 
     public enum TileType
     {
@@ -29,10 +30,7 @@ public class DungeonGenerator : MonoBehaviour
     private class RoomParameters
     {
         public int minSize = 2;
-        public int maxSize = 6;
-        public int minDoors = 1;
-        public int maxDoors = 4;
-        public int minDistanceBetweenRooms = 1;
+        public int maxSize = 4;
     }
 
     private RoomParameters roomParams = new RoomParameters();
@@ -78,11 +76,11 @@ public class DungeonGenerator : MonoBehaviour
     {
         // Initialize the dungeon maps
         InitializeMaps();
-        // Generate a single room
+        // Generate the rooms
         GenerateRooms();
-        // Fills in all non-room areas with floors
+        // Fills in all areas with floors
         GenerateFloor();
-        // Generate the walls
+        // Fills in all walls and doors
         GenerateWalls();
     }
 
@@ -381,7 +379,6 @@ public class DungeonGenerator : MonoBehaviour
     void GenerateRooms()
     {
         int attempts = 0;
-
         
         // Generate the specified number of rooms
         for (int i = 0; i < numberOfRooms; i++)
@@ -402,22 +399,29 @@ public class DungeonGenerator : MonoBehaviour
             // Check if the room overlaps with other rooms or dungeon walls
             if (IsRoomPositionValid(roomX, roomZ, roomWidth, roomLength))
             {
+                addDoors = true;
+
                 // Add the room to the list
                 Room newRoom = new Room(roomX, roomZ, roomWidth, roomLength);
                 rooms.Add(newRoom);
 
                 // Generate the room's floor and walls
-                GenerateRoom(newRoom); 
+                GenerateRoom(newRoom, addDoors); 
 
                 // Reset the number of attempts
                 attempts = 0;               
             } 
             else
             {
-                // If the room overlaps, try again
-                i--;
-                attempts++;
-            }           
+                addDoors = false;
+
+                // Add the room to the list
+                Room newRoom = new Room(roomX, roomZ, roomWidth, roomLength);
+                rooms.Add(newRoom);
+
+                // Generate the room's floor and walls
+                GenerateRoom(newRoom, addDoors); 
+            } 
         }
     }
 
@@ -443,7 +447,7 @@ public class DungeonGenerator : MonoBehaviour
         return true;
     }
 
-    void GenerateRoom(Room room)
+    void GenerateRoom(Room room, bool addDoors)
     {
         // Create a list to store potential door positions
         List<Vector2Int> potentialDoorPositions = new List<Vector2Int>();
@@ -456,11 +460,14 @@ public class DungeonGenerator : MonoBehaviour
                 dungeonFloorMap[x, z] = TileType.RoomTile.GetHashCode(); 
                 dungeonWallMap[x, z] = TileType.RoomTile.GetHashCode();
 
-                // Check if this tile is at the edge of the room
-                if (x == room.x || x == room.x + room.width - 1 || z == room.z || z == room.z + room.length - 1)
+                if (addDoors == true)
                 {
-                    // This tile is at the edge of the room, add it to potential door positions
-                    potentialDoorPositions.Add(new Vector2Int(x, z));
+                    // Check if this tile is at the edge of the room
+                    if (x == room.x || x == room.x + room.width - 1 || z == room.z || z == room.z + room.length - 1)
+                    {
+                        // This tile is at the edge of the room, add it to potential door positions
+                        potentialDoorPositions.Add(new Vector2Int(x, z));
+                    }
                 }
             }
         }
