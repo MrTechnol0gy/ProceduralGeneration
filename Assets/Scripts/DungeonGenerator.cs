@@ -12,7 +12,6 @@ public class DungeonGenerator : MonoBehaviour
     public int dungeonWidth = 10; // Width of the floor
     public int dungeonLength = 10; // Length of the floor
     public int numberOfRooms = 2; // Number of rooms to generate
-    public int maxAttempts = 10; // Maximum number of attempts to generate a room
     public float tileSize = 1.0f; // Size of each tile
     public float gridSpacing = 1.0f; // Spacing between tiles
 
@@ -378,16 +377,9 @@ public class DungeonGenerator : MonoBehaviour
 
     void GenerateRooms()
     {
-        int attempts = 0;
-        
         // Generate the specified number of rooms
         for (int i = 0; i < numberOfRooms; i++)
-        {
-            // Check if the number of attempts has exceeded the maximum
-            if (attempts >= maxAttempts)
-            {
-                break;
-            }
+        {            
             // Define the room's size (random within the specified range)
             int roomWidth = Random.Range(roomParams.minSize, roomParams.maxSize);
             int roomLength = Random.Range(roomParams.minSize, roomParams.maxSize);
@@ -407,9 +399,6 @@ public class DungeonGenerator : MonoBehaviour
 
                 // Generate the room's floor and walls
                 GenerateRoom(newRoom, addDoors); 
-
-                // Reset the number of attempts
-                attempts = 0;               
             } 
             else
             {
@@ -458,7 +447,11 @@ public class DungeonGenerator : MonoBehaviour
             {
                 // Set values in dungeonFloorMap and dungeonWallMap to indicate floors and walls
                 dungeonFloorMap[x, z] = TileType.RoomTile.GetHashCode(); 
-                dungeonWallMap[x, z] = TileType.RoomTile.GetHashCode();
+                // Check if this tile is not a door
+                if (dungeonWallMap[x, z] != TileType.Door.GetHashCode())
+                {
+                    dungeonWallMap[x, z] = TileType.RoomTile.GetHashCode();
+                }
 
                 if (addDoors == true)
                 {
