@@ -44,6 +44,7 @@ public class DungeonGenerator : MonoBehaviour
         public int z;
         public int width;
         public int length;
+        public int[][] roomMap;
 
         public Room(int x, int z, int width, int length)
         {
@@ -51,6 +52,11 @@ public class DungeonGenerator : MonoBehaviour
             this.z = z;
             this.width = width;
             this.length = length;
+            roomMap = new int[width][];
+            for (int i = 0; i < width; i++)
+            {
+                roomMap[i] = new int[length];
+            }
         }
     }
 
