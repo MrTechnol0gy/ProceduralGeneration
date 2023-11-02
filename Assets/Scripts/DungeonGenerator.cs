@@ -145,6 +145,7 @@ public class DungeonGenerator : MonoBehaviour
             {
                 if (dungeonFloorMap[x, z] == TileType.Empty.GetHashCode())
                 {
+                    Debug.Log("Empty tile found and it shouldn't be.");
                     // Randomly select a floor tile from your array
                     int randomTileIndex = Random.Range(0, floorTiles.Length);
                     GameObject tilePrefab = floorTiles[randomTileIndex];
@@ -155,9 +156,6 @@ public class DungeonGenerator : MonoBehaviour
                         0,
                         z * (tileSize + gridSpacing)
                     );
-
-                    // Update the dungeon layout map to indicate a floor tile.
-                    dungeonFloorMap[x, z] = TileType.StandardTile.GetHashCode();
 
                     // Instantiate the floor tile at the calculated position, as a child of this transform
                     GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity, transform);
@@ -182,7 +180,7 @@ public class DungeonGenerator : MonoBehaviour
                     // Rename the tile based on its position in the grid
                     tile.name = "FloorTile_" + x + "_" + z;
                 }
-                else if (dungeonFloorMap[x, z] == 2)
+                else if (dungeonFloorMap[x, z] == TileType.RoomTile.GetHashCode())
                 {
                     // Randomly select a floor tile from your array
                     int randomTileIndex = Random.Range(0, roomFloorTiles.Length);
@@ -521,113 +519,84 @@ public class DungeonGenerator : MonoBehaviour
         // Smooth the dungeon floor map
         for (int i = 0; i < smoothIterations; i++)
         {
+            // Create a copy of the dungeon floor map for this iteration
+            // This is to prevent the smoothing from affecting the results of previous iterations
+            int[,] newDungeonFloorMap = (int[,])dungeonFloorMap.Clone();
+
+            Debug.Log("Loop + " + i);
             // Increase the size of rooms to create corridors one tile wide
             for (int x = 0; x < dungeonWidth; x++)
             {
                 for (int z = 0; z < dungeonLength; z++)
                 {
-                    // Check if this tile is at the edge of the dungeon
-                    if (x == 0 || x == dungeonWidth - 1 || z == 0 || z == dungeonLength - 1)
+                    if (dungeonFloorMap[x, z] == TileType.Empty.GetHashCode())
                     {
-                        // Set this tile to be a standard tile
-                        dungeonFloorMap[x, z] = TileType.StandardTile.GetHashCode();
+                        // Handle empty tiles
+                        // Check all conditions and modify newDungeonFloorMap, not dungeonFloorMap
                     }
-                    // Check if this tile is an empty tile                
-                    else if (dungeonFloorMap[x, z] == TileType.Empty.GetHashCode())
+                    else if (dungeonFloorMap[x, z] == TileType.StandardTile.GetHashCode())
                     {
-                        // Check if there are exactly 3 adjacent room tiles and exactly 2 diagonal room tiles
-                        if (GetAdjacentRoomFloorCount(x, z) == 3 && GetDiagonalRoomFloorCount(x, z) == 2)
-                        {
-                            // Set this tile to be a room tile
-                            dungeonFloorMap[x, z] = TileType.RoomTile.GetHashCode();
-                        }
-                        // Check if there is exactly two diagonal room tiles and exactly two adjacent standard tiles
-                        else if (GetDiagonalRoomFloorCount(x, z) == 2 && GetAdjacentEmptyFloorCount(x, z) == 2)
-                        {
-                            // Set this tile to be a standard tile
-                            dungeonFloorMap[x, z] = TileType.StandardTile.GetHashCode();
-                        }  
-                        // check if there are no adjacent Standard tiles and at least three diagonal room tiles
-                        else if (GetAdjacentEmptyFloorCount(x, z) == 0 && GetDiagonalRoomFloorCount(x, z) > 2)
-                        {
-                            // Set this tile to be a standard tile
-                            dungeonFloorMap[x, z] = TileType.RoomTile.GetHashCode();
-                        }  
-                        // Check if there are no adjacent room tiles and at least one diagonal room tile
-                        else if (GetAdjacentRoomFloorCount(x, z) == 0 && GetDiagonalRoomFloorCount(x, z) > 0)
-                        {
-                            // Set this tile to be a standard tile
-                            dungeonFloorMap[x, z] = TileType.StandardTile.GetHashCode();
-                        } 
-                        // Check if there are more than two adjacent floor tiles
-                        else if (GetAdjacentEmptyFloorCount(x, z) > 3)
-                        {
-                            // Set this tile to be a room tile
-                            dungeonFloorMap[x, z] = TileType.RoomTile.GetHashCode();
-                        }
-                        // Check if there are no adjacent room tiles
-                        else if (GetAdjacentRoomFloorCount(x, z) == 0)
-                        {
-                            // Set this tile to be a room tile
-                            dungeonFloorMap[x, z] = TileType.RoomTile.GetHashCode();
-                        }
-                        // Check if there are no adjacent empty tiles
-                        else if (GetAdjacentEmptyFloorCount(x, z) == 0)
-                        {
-                            // Set this tile to be a room tile
-                            dungeonFloorMap[x, z] = TileType.RoomTile.GetHashCode();
-                        }                               
-                    }         
+                        // Handle standard tiles
+                        // Check conditions and modify newDungeonFloorMap if necessary
+                    }
+                    else if (dungeonFloorMap[x, z] == TileType.RoomTile.GetHashCode())
+                    {
+                        // Handle room tiles
+                        // Check conditions and modify newDungeonFloorMap if necessary
+                    }
                 }
-            }                
-        }
+            }     
+            // Replace the dungeon floor map with the modified map
+            dungeonFloorMap = newDungeonFloorMap;    
+        } 
+        Debug.Log("leaving smoothing loop");
         // If a tile is a standard tile and all adjacent and diagonal tiles are room tiles, set it to be a room tile
-        for (int x = 0; x < dungeonWidth; x++)
-        {
-            for (int z = 0; z < dungeonLength; z++)
-            {
-                if (dungeonFloorMap[x, z] == TileType.StandardTile.GetHashCode())
-                {
-                    // Check if all adjacent and diagonal tiles are room tiles
-                    if (GetAdjacentRoomFloorCount(x, z) == 4 && GetDiagonalRoomFloorCount(x, z) == 4)
-                    {
-                        Debug.Log("Removing room holes");
-                        // Set this tile to be a room tile
-                        dungeonFloorMap[x, z] = TileType.RoomTile.GetHashCode();
-                        dungeonPillarMap[x, z] = TileType.Pillar.GetHashCode();
-                    }
-                }
-            }
-        }
+        // for (int x = 0; x < dungeonWidth; x++)
+        // {
+        //     for (int z = 0; z < dungeonLength; z++)
+        //     {
+        //         if (dungeonFloorMap[x, z] == TileType.StandardTile.GetHashCode())
+        //         {
+        //             // Check if all adjacent and diagonal tiles are room tiles
+        //             if (GetAdjacentRoomFloorCount(x, z) == 4 && GetDiagonalRoomFloorCount(x, z) == 4)
+        //             {
+        //                 // Set this tile to be a room tile
+        //                 dungeonFloorMap[x, z] = TileType.RoomTile.GetHashCode();
+        //                 dungeonPillarMap[x, z] = TileType.Pillar.GetHashCode();
+        //             }
+        //         }
+        //     }
+        // }
         // If a tile is a room tile and no adjacent or diagonal tiles are room tiles, set it to be a standard tile
-        for (int x = 0; x < dungeonWidth; x++)
-        {
-            for (int z = 0; z < dungeonLength; z++)
-            {
-                if (dungeonFloorMap[x, z] == TileType.RoomTile.GetHashCode())
-                {
-                    // Check if all adjacent and diagonal tiles are room tiles
-                    if (GetAdjacentRoomFloorCount(x, z) == 0 && GetDiagonalRoomFloorCount(x, z) == 0)
-                    {
-                        Debug.Log("Removing room holes");
-                        // Set this tile to be a room tile
-                        dungeonFloorMap[x, z] = TileType.StandardTile.GetHashCode();
-                        dungeonPillarMap[x, z] = TileType.Pillar.GetHashCode();
-                    }
-                }
-            }
-        }
+        // for (int x = 0; x < dungeonWidth; x++)
+        // {
+        //     for (int z = 0; z < dungeonLength; z++)
+        //     {
+        //         if (dungeonFloorMap[x, z] == TileType.RoomTile.GetHashCode())
+        //         {
+        //             // Check if all adjacent and diagonal tiles are room tiles
+        //             if (GetAdjacentRoomFloorCount(x, z) == 0 && GetDiagonalRoomFloorCount(x, z) == 0 || GetAdjacentEmptyFloorCount(x, z) == 4 && GetDiagonalEmptyFloorCount(x, z) == 4)
+        //             {
+        //                 Debug.Log("Setting room & pillar combo");
+        //                 // Set this tile to be a room tile
+        //                 dungeonFloorMap[x, z] = TileType.StandardTile.GetHashCode();
+        //                 dungeonPillarMap[x, z] = TileType.Pillar.GetHashCode();
+        //             }                    
+        //         }
+        //     }
+        // }
         // Convert any empty tiles into standard floor tiles
-        for (int x = 0; x < dungeonWidth; x++)
-        {
-            for (int z = 0; z < dungeonLength; z++)
-            {
-                if (dungeonFloorMap[x, z] == TileType.Empty.GetHashCode())
-                {
-                    dungeonFloorMap[x, z] = TileType.StandardTile.GetHashCode();
-                }
-            }
-        }
+        // for (int x = 0; x < dungeonWidth; x++)
+        // {
+        //     for (int z = 0; z < dungeonLength; z++)
+        //     {
+        //         if (dungeonFloorMap[x, z] == TileType.Empty.GetHashCode())
+        //         {
+        //             Debug.Log("Converting empty tile to standard tile as last step");
+        //             dungeonFloorMap[x, z] = TileType.StandardTile.GetHashCode();
+        //         }
+        //     }
+        // }
     }
     int GetAdjacentEmptyFloorCount(int x, int z)
     {
