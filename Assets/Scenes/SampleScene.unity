@@ -267,15 +267,29 @@ MonoBehaviour:
   - {fileID: 115610, guid: b444f81a3b0a3e14d9e6f5cb91afee55, type: 3}
   roomFloorTiles:
   - {fileID: 125812, guid: f7d5c786be55f564b9145808d2121305, type: 3}
+  enviroTiles:
+  - {fileID: 184820, guid: 9e2131326fc97464987f58ebcb08832a, type: 3}
+  - {fileID: 126278, guid: 5409c9ff5a9c7b045a9809d71ccdcab8, type: 3}
+  - {fileID: 123934, guid: c6cb56b5c70f4f14ebf96689fda29f2c, type: 3}
   wallTiles:
   - {fileID: 130878, guid: 196b993d2b0354842bd6fa90eb970550, type: 3}
   doorTiles:
   - {fileID: 162390, guid: edc836b82587af342b79b01da47827f5, type: 3}
-  pillarTiles:
-  - {fileID: 177812, guid: 16cb051a8191e0649bc4c655ac511479, type: 3}
+  props:
+  - {fileID: 123292, guid: df22dae66d96c2944adb65e1661878de, type: 3}
+  - {fileID: 100352, guid: eb2fd9123802bbb43bd44dd7dd3c8df4, type: 3}
+  - {fileID: 133876, guid: 617f333324332de47a8b5f07cc0870cc, type: 3}
+  - {fileID: 144150, guid: fb698eb68f15b3845baf425febbee697, type: 3}
+  - {fileID: 145852, guid: 4ddf6f65a614aa742b0f4f1012b3d339, type: 3}
+  - {fileID: 158108, guid: eab88f6a71881d8468474cc3e3610734, type: 3}
+  - {fileID: 133660, guid: 971412afe90b27640b1c78c0641deec9, type: 3}
+  - {fileID: 149244, guid: 2835e173a7421ca499f76d4b7867306f, type: 3}
+  - {fileID: 144976, guid: 045cc9e875b3f1f48b4774837b97b949, type: 3}
+  - {fileID: 187152, guid: ae21f9dfbc8404a4a99440237a6af322, type: 3}
+  - {fileID: 188314, guid: 7b433e4840fda0f48b0428546af484d5, type: 3}
+  - {fileID: 126206, guid: edd815d6828cbde439a3373e1f684ff4, type: 3}
   dungeonWidth: 20
   dungeonLength: 20
-  numberOfRooms: 12
   tileSize: 5
   gridSpacing: 0
 --- !u!1 &963194225
