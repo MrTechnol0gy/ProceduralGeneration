@@ -275,21 +275,37 @@ MonoBehaviour:
   - {fileID: 130878, guid: 196b993d2b0354842bd6fa90eb970550, type: 3}
   doorTiles:
   - {fileID: 162390, guid: edc836b82587af342b79b01da47827f5, type: 3}
-  props:
+  floorProps:
+  - {fileID: 155898, guid: 50aa90a81020d7f4d9882a4bede1b4f3, type: 3}
+  - {fileID: 129420, guid: ff5c549bd91cb7c43ba46386303671e8, type: 3}
+  - {fileID: 187062, guid: 3da6cabdb2d06ad4ab1068a9b2a231cd, type: 3}
+  - {fileID: 190932, guid: 20e0bf298681fcd4693097c822277593, type: 3}
+  - {fileID: 147340, guid: ff8e23c9e979e9d4b8760b6c3e81a87a, type: 3}
+  - {fileID: 190188, guid: 87874848711c372419e6cf6ca05d9ea1, type: 3}
+  - {fileID: 156300, guid: 04fb0adabe575c0429826d73f7db3c13, type: 3}
+  - {fileID: 102790, guid: 86a753c1fed37d54bbb4a774766985a5, type: 3}
+  - {fileID: 128100, guid: 6e329ba57c2f99b41acb3584d0cb8da5, type: 3}
   - {fileID: 123292, guid: df22dae66d96c2944adb65e1661878de, type: 3}
-  - {fileID: 100352, guid: eb2fd9123802bbb43bd44dd7dd3c8df4, type: 3}
   - {fileID: 133876, guid: 617f333324332de47a8b5f07cc0870cc, type: 3}
   - {fileID: 144150, guid: fb698eb68f15b3845baf425febbee697, type: 3}
-  - {fileID: 145852, guid: 4ddf6f65a614aa742b0f4f1012b3d339, type: 3}
+  - {fileID: 175928, guid: 497b6e4d56b9a2d48ac2cd8de829fa88, type: 3}
+  - {fileID: 166584, guid: 184f44cf58e82434ab30e27aaaf9b05f, type: 3}
+  - {fileID: 144134, guid: 606dc5976508ea346a8b019a9f3be565, type: 3}
   - {fileID: 158108, guid: eab88f6a71881d8468474cc3e3610734, type: 3}
   - {fileID: 133660, guid: 971412afe90b27640b1c78c0641deec9, type: 3}
-  - {fileID: 149244, guid: 2835e173a7421ca499f76d4b7867306f, type: 3}
-  - {fileID: 144976, guid: 045cc9e875b3f1f48b4774837b97b949, type: 3}
-  - {fileID: 187152, guid: ae21f9dfbc8404a4a99440237a6af322, type: 3}
-  - {fileID: 188314, guid: 7b433e4840fda0f48b0428546af484d5, type: 3}
-  - {fileID: 126206, guid: edd815d6828cbde439a3373e1f684ff4, type: 3}
-  dungeonWidth: 20
-  dungeonLength: 20
+  - {fileID: 198910, guid: 98721e9eb8d07ad4b8d521e08f41e5ae, type: 3}
+  - {fileID: 152086, guid: f5d18f98ce863ec418f3683ffd58ad85, type: 3}
+  - {fileID: 188464, guid: ec78f1131a3a5464a8882bd020e329ff, type: 3}
+  - {fileID: 141250, guid: 668e6a33e8614334c822a49aa47f9729, type: 3}
+  - {fileID: 160402, guid: a4fb40fd0313a7b4892bc1ab977cc60b, type: 3}
+  pillarTiles:
+  - {fileID: 113726, guid: b83206f9ae850f24dae2564d16c0fa60, type: 3}
+  - {fileID: 143760, guid: a00cf8ef81e92b14cadd28b0a110b16f, type: 3}
+  - {fileID: 147220, guid: b6d8924893ac4884481532f033644103, type: 3}
+  - {fileID: 176356, guid: a0929359dc1d88b4ab98f104369aeea9, type: 3}
+  - {fileID: 109830, guid: b13a24f9d7893c246afe02285ef1f0f9, type: 3}
+  dungeonWidth: 70
+  dungeonLength: 50
   tileSize: 5
   gridSpacing: 0
 --- !u!1 &963194225
@@ -377,13 +393,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.29857776, y: -0, z: -0, w: 0.9543854}
-  m_LocalPosition: {x: 46.1, y: 55.5, z: -24.6}
+  m_LocalRotation: {x: 0.36666456, y: -0, z: -0, w: 0.9303533}
+  m_LocalPosition: {x: 172.2, y: 68.9, z: -18.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 34.744, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 43.02, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

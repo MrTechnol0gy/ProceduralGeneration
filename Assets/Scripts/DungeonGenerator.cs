@@ -9,16 +9,19 @@ public class DungeonGenerator : MonoBehaviour
     public GameObject[] enviroTiles; // Dirt tile prefab
     public GameObject[] wallTiles; // Array of wall tile prefabs
     public GameObject[] doorTiles; // Array of door tile prefabs
-    public GameObject[] props; // Array of props to spawn in the dungeon
+    public GameObject[] floorProps; // Array of props to spawn in the dungeon
+    public GameObject[] pillarTiles; // Array of pillars to spawn in the dungeon
     public int dungeonWidth = 10; // Width of the floor
     public int dungeonLength = 10; // Length of the floor
     private int numberOfRooms; // Number of rooms to generate; based on size of dungeon
     public float tileSize = 1.0f; // Size of each tile
     public float gridSpacing = 1.0f; // Spacing between tiles
+    private float timeElapsed = 0.0f; // Time elapsed since the start of the game
 
     private int[,] dungeonFloorMap;
     private int[,] dungeonWallMap;
     private int[,] dungeonPropsMap;
+    private int[,] dungeonPillarsMap;
     private bool addDoors = true;
 
     public enum TileType
@@ -28,7 +31,8 @@ public class DungeonGenerator : MonoBehaviour
         RoomTile,
         Door,
         EnviroTile,
-        Props
+        FloorProps,
+        Pillars
     }
     private class RoomParameters
     {
@@ -61,6 +65,7 @@ public class DungeonGenerator : MonoBehaviour
         dungeonFloorMap = new int[dungeonWidth, dungeonLength];
         dungeonWallMap = new int[dungeonWidth, dungeonLength];
         dungeonPropsMap = new int[dungeonWidth, dungeonLength];
+        dungeonPillarsMap = new int[dungeonWidth, dungeonLength];
     }
 
     void Start()
@@ -70,10 +75,24 @@ public class DungeonGenerator : MonoBehaviour
 
     void Update()
     {
+        // Increment the time elapsed
+        timeElapsed += Time.deltaTime;
         if (Input.GetKeyDown(KeyCode.Space))
         {
             ClearDungeon();
             GenerateDungeon();
+            timeElapsed = 0.0f;
+        }
+        // else if three seconds have passed, clear the dungeon and generate a new one
+        else if (timeElapsed > 5.0f)
+        {
+            timeElapsed = 0.0f;
+            ClearDungeon();
+            GenerateDungeon();
+        }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
         }
     }
 
@@ -91,8 +110,10 @@ public class DungeonGenerator : MonoBehaviour
         GenerateWalls();
         // Fills in ceilings
         GenerateCeilings();
+        // Fills in pillars
+        GeneratePillars();
         // Fills in all props
-        // GenerateProps();
+        GenerateProps();
     }
 
     void ClearDungeon()
@@ -126,12 +147,21 @@ public class DungeonGenerator : MonoBehaviour
             }
         }
 
-        // Initialize the dungeon pillar map to all 0s
+        // Initialize the dungeon props map to all 0s
         for (int x = 0; x < dungeonWidth; x++)
         {
             for (int z = 0; z < dungeonLength; z++)
             {
                 dungeonPropsMap[x, z] = 0;
+            }
+        }
+
+        // Initialize the dungeon pillars map to all 0s
+        for (int x = 0; x < dungeonWidth; x++)
+        {
+            for (int z = 0; z < dungeonLength; z++)
+            {
+                dungeonPillarsMap[x, z] = 0;
             }
         }
     }
@@ -180,19 +210,16 @@ public class DungeonGenerator : MonoBehaviour
                         if (tileNamePrefix == "RoomFloorTile")
                         {
                             position.z += tileSize;
-                        }
-
-                        GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity, transform);
-                        tile.name = tileNamePrefix + "_" + x + "_" + z;  
-                        // If an EnviroTile, a random chance to add a prop to the Props map
-                        if (tileNamePrefix == "EnviroTile")
-                        {
+                            // If a RoomTile, a random chance to add a prop to the Props map
                             int randomChance = Random.Range(0, 100);
                             if (randomChance < 10)
                             {
-                                dungeonPropsMap[x, z] = TileType.Props.GetHashCode();
+                                dungeonPropsMap[x, z] = TileType.FloorProps.GetHashCode();
                             }
-                        }                      
+                        }
+
+                        GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity, transform);
+                        tile.name = tileNamePrefix + "_" + x + "_" + z;                                               
                     }
                 }
             }
@@ -650,6 +677,7 @@ public class DungeonGenerator : MonoBehaviour
             // Create a copy of the dungeon floor map for this iteration
             // This is to prevent the smoothing from affecting the results of previous iterations
             int[,] newDungeonFloorMap = (int[,])dungeonFloorMap.Clone();
+            int pillarsPlaced = 0;
 
             Debug.Log("Loop + " + i);
             // Increase the size of rooms to create corridors one tile wide
@@ -668,6 +696,7 @@ public class DungeonGenerator : MonoBehaviour
                             newDungeonFloorMap[x, z] = TileType.StandardTile.GetHashCode();
                         }
                         // Check if the tile is adjacent to a room tile
+                        // This creates borders around each room, which act as hallways.
                         else if (GetAdjacentRoomFloorCount(x, z) > 0)
                         {
                             // Set the tile to a standard tile
@@ -731,12 +760,25 @@ public class DungeonGenerator : MonoBehaviour
                         {
                             // Set the tile to a standard tile
                             newDungeonFloorMap[x, z] = TileType.StandardTile.GetHashCode();
+                        }                        
+                        else if (GetAdjacentRoomFloorCount(x, z) == 4 && GetDiagonalRoomFloorCount(x, z) == 4)
+                        {
+                            if (pillarsPlaced == 0)
+                            {
+                                // Set the tile to a pillar tile
+                                dungeonPillarsMap[x, z] = TileType.Pillars.GetHashCode();
+                                pillarsPlaced += 3;
+                            }
+                            else
+                            {
+                                pillarsPlaced--;
+                            }
                         }
                     }
                 }
             }     
             // Replace the dungeon floor map with the modified map
-            dungeonFloorMap = newDungeonFloorMap;    
+            dungeonFloorMap = newDungeonFloorMap;           
         } 
     }
     int GetAdjacentEmptyFloorCount(int x, int z)
@@ -903,11 +945,11 @@ public class DungeonGenerator : MonoBehaviour
         {
             for (int z = 0; z < dungeonLength; z++)
             {
-                if (dungeonPropsMap[x, z] == TileType.Props.GetHashCode())
+                if (dungeonPropsMap[x, z] == TileType.FloorProps.GetHashCode() && dungeonPillarsMap[x, z] != TileType.Pillars.GetHashCode())
                 {
                     // Randomly select a prop tile from your array.
-                    int randomTileIndex = Random.Range(0, props.Length);
-                    GameObject propsTile = props[randomTileIndex];
+                    int randomTileIndex = Random.Range(0, floorProps.Length);
+                    GameObject propsTile = floorProps[randomTileIndex];
 
                     // Calculate the position for the prop tile.
                     Vector3 position = new Vector3(
@@ -918,12 +960,50 @@ public class DungeonGenerator : MonoBehaviour
 
                     // Instantiate the pillar tile at the calculated position, as a child of this transform.
                     GameObject propsTileInstance = Instantiate(propsTile, position, Quaternion.identity, transform);
-                    // Shift the prop to the left by at least 1/10th of a tile, and forward by at least 1/10th of a tile
+                    // Move the prop half a tile to the left and forward
                     propsTileInstance.transform.position = new Vector3(
-                        propsTileInstance.transform.position.x - tileSize / Random.Range(10, 90),
+                        propsTileInstance.transform.position.x - tileSize / 2,
                         propsTileInstance.transform.position.y,
-                        propsTileInstance.transform.position.z + tileSize / Random.Range(10, 90)
+                        propsTileInstance.transform.position.z + tileSize / 2
                     );
+                    // Rotate the prop randomly
+                    propsTileInstance.transform.rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+                    // Scale the prop up three times
+                    propsTileInstance.transform.localScale = new Vector3(3, 3, 3);
+                }
+            }
+        }
+    }
+    void GeneratePillars()
+    {
+        // Generate pillars based on the dungeonPillarsMap
+        for (int x = 0; x < dungeonWidth; x++)
+        {
+            for (int z = 0; z < dungeonLength; z++)
+            {
+                if (dungeonPillarsMap[x, z] == TileType.Pillars.GetHashCode())
+                {
+                    // Randomly select a pillar tile from your array.
+                    int randomTileIndex = Random.Range(0, pillarTiles.Length);
+                    GameObject pillarTile = pillarTiles[randomTileIndex];
+
+                    // Calculate the position for the pillar tile.
+                    Vector3 position = new Vector3(
+                        x * (tileSize + gridSpacing),
+                        0,
+                        z * (tileSize + gridSpacing)
+                    );
+
+                    // Instantiate the pillar tile at the calculated position, as a child of this transform.
+                    GameObject pillarTileInstance = Instantiate(pillarTile, position, Quaternion.identity, transform);
+                    // Move the pillar half a tile to the left and forward
+                    pillarTileInstance.transform.position = new Vector3(
+                        pillarTileInstance.transform.position.x - tileSize / 2,
+                        pillarTileInstance.transform.position.y,
+                        pillarTileInstance.transform.position.z + tileSize / 2
+                    );
+                    // Rotate the pillar randomly
+                    pillarTileInstance.transform.rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
                 }
             }
         }
